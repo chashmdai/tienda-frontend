@@ -1,0 +1,9 @@
+.git
+.gitignore
+.github
+*.md
+.env
+.env.*
+.DS_Store
+docker-compose.yml
+_local-backend

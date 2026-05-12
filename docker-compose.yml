@@ -1,0 +1,59 @@
+# ============================================================
+# docker-compose.yml  - tienda-frontend
+# Stack completo (front + back + db) para validar end-to-end
+# en local antes de pushear a deploy.
+# ============================================================
+services:
+  frontend:
+    build: .
+    image: tienda-frontend:local
+    container_name: tienda-frontend
+    restart: unless-stopped
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: 3001
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  backend:
+    image: node:22-alpine
+    container_name: tienda-backend-local
+    restart: unless-stopped
+    working_dir: /app
+    command: sh -c "npm i -g pnpm > /dev/null 2>&1; npm i express cors mysql2 --silent && node server.js"
+    environment:
+      PORT:        3001
+      DB_HOST:     db
+      DB_PORT:     3306
+      DB_USER:     ${DB_USER:-alumno}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME:     ${DB_NAME:-tienda_perritos}
+    volumes:
+      - ./_local-backend:/app:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: mysql:8.4
+    container_name: tienda-db-local
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE:      ${DB_NAME:-tienda_perritos}
+      MYSQL_USER:          ${DB_USER:-alumno}
+      MYSQL_PASSWORD:      ${DB_PASSWORD}
+    volumes:
+      - dbdata-frontend:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  dbdata-frontend:
+    driver: local
