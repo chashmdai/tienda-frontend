@@ -1,132 +1,537 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <title>Tienda de Alimentos para Perritos &#128054;</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f5f5f5;
-    }
-    header {
-      background: #3b82f6;
-      color: white;
-      padding: 16px;
-      text-align: center;
-    }
-    main {
-      max-width: 1000px;
-      margin: 20px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    h1, h2 { margin-top: 0; }
-    .actions { margin-bottom: 16px; }
-    button {
-      padding: 8px 16px;
-      margin-right: 8px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      background: #3b82f6;
-      color: white;
-    }
-    button.secondary { background: #6b7280; }
-    button.danger    { background: #ef4444; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-    }
-    th { background: #e5e7eb; }
-    tr:nth-child(even) { background: #f9fafb; }
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-      margin-top: 16px;
-    }
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 4px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 6px;
-      border-radius: 4px;
-      border: 1px solid #d1d5db;
-      box-sizing: border-box;
-    }
-    .status     { margin-top: 10px; font-size: 0.9rem; }
-    .status.ok    { color: #16a34a; }
-    .status.error { color: #dc2626; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Tienda de Alimentos para Perritos &#128054;</h1>
-    <p>Gestión CRUD de productos en contenedores Docker (Frontend + Backend + MySQL)</p>
-  </header>
-  <main>
-    <section>
-      <h2>Productos</h2>
-      <div class="actions">
-        <button id="btnCargar">Cargar Productos</button>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyProductos"></tbody>
-      </table>
-    </section>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <section>
-      <h2 id="formTitle">Nuevo producto</h2>
-      <div class="form-grid">
-        <div>
-          <label for="nombre">Nombre</label>
-          <input type="text" id="nombre" placeholder="Ej: Alimento Premium Cachorro" />
-        </div>
-        <div>
-          <label for="descripcion">Descripción</label>
-          <textarea id="descripcion" rows="2" placeholder="Ej: Sabor pollo, razas pequeñas"></textarea>
-        </div>
-        <div>
-          <label for="precio">Precio</label>
-          <input type="number" id="precio" step="0.01" min="0" placeholder="Ej: 19990" />
-        </div>
-        <div>
-          <label for="stock">Stock</label>
-          <input type="number" id="stock" min="0" placeholder="Ej: 10" />
-        </div>
-      </div>
-      <div class="actions" style="margin-top: 12px;">
-        <button id="btnGuardar">Guardar</button>
-        <button id="btnCancelar" class="secondary">Cancelar</button>
-      </div>
-      <div id="status" class="status"></div>
-    </section>
-  </main>
+    <title>Tienda de Perritos | Gestión de Productos</title>
 
-  <script src="app.js"></script>
-</body>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: rgba(15, 23, 42, 0.75);
+        --card-solid: #111827;
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --secondary: #334155;
+        --danger: #ef4444;
+        --success: #22c55e;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --border: rgba(255, 255, 255, 0.08);
+        --shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+        --radius: 22px;
+        --transition: 0.25s ease;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        min-height: 100vh;
+        background:
+          radial-gradient(
+            circle at top left,
+            rgba(37, 99, 235, 0.25),
+            transparent 30%
+          ),
+          radial-gradient(
+            circle at bottom right,
+            rgba(14, 165, 233, 0.18),
+            transparent 25%
+          ),
+          linear-gradient(135deg, #020617, #0f172a 50%, #111827);
+        color: var(--text);
+        padding: 40px 20px;
+      }
+
+      .container {
+        max-width: 1250px;
+        margin: auto;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(18px);
+        border: 1px solid var(--border);
+        border-radius: 30px;
+        padding: 42px;
+        box-shadow: var(--shadow);
+        margin-bottom: 28px;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        width: 320px;
+        height: 320px;
+        background: rgba(37, 99, 235, 0.18);
+        border-radius: 50%;
+        top: -120px;
+        right: -100px;
+        filter: blur(20px);
+      }
+
+      .hero-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        z-index: 1;
+      }
+
+      .logo {
+        width: 72px;
+        height: 72px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, #2563eb, #0ea5e9);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+      }
+
+      .hero h1 {
+        font-size: clamp(2rem, 5vw, 3.2rem);
+        font-weight: 800;
+        letter-spacing: -1px;
+      }
+
+      .hero p {
+        color: var(--muted);
+        margin-top: 10px;
+        max-width: 720px;
+        line-height: 1.7;
+        font-size: 1rem;
+      }
+
+      .badge {
+        background: rgba(37, 99, 235, 0.15);
+        color: #93c5fd;
+        border: 1px solid rgba(147, 197, 253, 0.15);
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        z-index: 1;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 24px;
+      }
+
+      .card {
+        background: var(--card);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px;
+        box-shadow: var(--shadow);
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .section-title h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+
+      .section-title span {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: none;
+        outline: none;
+        border-radius: 14px;
+        padding: 12px 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+      }
+
+      button.primary {
+        background: linear-gradient(135deg, #2563eb, #0ea5e9);
+        color: white;
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.28);
+      }
+
+      button.primary:hover {
+        background: linear-gradient(135deg, #1d4ed8, #0284c7);
+      }
+
+      button.secondary {
+        background: #1e293b;
+        color: #cbd5e1;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      button.secondary:hover {
+        background: #334155;
+      }
+
+      button.danger {
+        background: rgba(239, 68, 68, 0.14);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+
+      button.danger:hover {
+        background: rgba(239, 68, 68, 0.22);
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+      }
+
+      thead {
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      th {
+        text-align: left;
+        padding: 18px;
+        font-size: 0.88rem;
+        color: #cbd5e1;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      td {
+        padding: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        color: #f1f5f9;
+        vertical-align: middle;
+      }
+
+      tbody tr {
+        transition: var(--transition);
+      }
+
+      tbody tr:hover {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .price {
+        font-weight: 700;
+        color: #93c5fd;
+      }
+
+      .stock {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(34, 197, 94, 0.12);
+        color: #86efac;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      label {
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: #cbd5e1;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+        color: white;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: 0.96rem;
+        transition: var(--transition);
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 110px;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        color: #64748b;
+      }
+
+      input:focus,
+      textarea:focus {
+        border-color: rgba(59, 130, 246, 0.6);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .status {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        font-size: 0.92rem;
+        display: none;
+      }
+
+      .status.ok {
+        display: block;
+        background: rgba(34, 197, 94, 0.12);
+        color: #86efac;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+      }
+
+      .status.error {
+        display: block;
+        background: rgba(239, 68, 68, 0.12);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+
+      .footer {
+        margin-top: 26px;
+        text-align: center;
+        color: #64748b;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          padding: 30px;
+        }
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 18px;
+        }
+
+        .card,
+        .hero {
+          padding: 22px;
+        }
+
+        button {
+          width: 100%;
+        }
+
+        .actions {
+          flex-direction: column;
+        }
+
+        .hero-top {
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <section class="hero">
+        <div class="hero-top">
+          <div class="brand">
+            <div class="logo">🐶</div>
+
+            <div>
+              <h1>Tienda de Perritos</h1>
+
+              <p>
+                Plataforma moderna para gestión de productos, stock y precios.
+                Integrada con arquitectura Docker, Backend API y MySQL.
+              </p>
+            </div>
+          </div>
+
+          <div class="badge">Frontend • Backend • MySQL • Docker</div>
+        </div>
+      </section>
+
+      <div class="grid">
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <h2>Productos</h2>
+              <span>Listado completo de productos registrados</span>
+            </div>
+
+            <div class="actions">
+              <button id="btnCargar" class="primary">⟳ Cargar Productos</button>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Descripción</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+
+              <tbody id="tbodyProductos">
+                <tr>
+                  <td>#001</td>
+
+                  <td>
+                    <strong>Alimento Premium Puppy</strong>
+                  </td>
+
+                  <td>Fórmula premium sabor pollo para cachorros.</td>
+
+                  <td class="price">$19.990</td>
+
+                  <td>
+                    <span class="stock">● 24 unidades</span>
+                  </td>
+
+                  <td>
+                    <div class="actions">
+                      <button class="secondary">Editar</button>
+                      <button class="danger">Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="section-title">
+            <div>
+              <h2 id="formTitle">Nuevo Producto</h2>
+              <span>Agregar o actualizar productos</span>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="nombre">Nombre</label>
+
+              <input
+                type="text"
+                id="nombre"
+                placeholder="Ej: Alimento Premium Cachorro"
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="descripcion">Descripción</label>
+
+              <textarea
+                id="descripcion"
+                placeholder="Ej: Sabor pollo, razas pequeñas, 3kg"
+              ></textarea>
+            </div>
+
+            <div class="input-group">
+              <label for="precio">Precio</label>
+
+              <input
+                type="number"
+                id="precio"
+                step="0.01"
+                min="0"
+                placeholder="Ej: 19990"
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="stock">Stock</label>
+
+              <input type="number" id="stock" min="0" placeholder="Ej: 15" />
+            </div>
+          </div>
+
+          <div class="actions" style="margin-top: 22px">
+            <button id="btnGuardar" class="primary">💾 Guardar Producto</button>
+
+            <button id="btnCancelar" class="secondary">✕ Cancelar</button>
+          </div>
+
+          <div id="status" class="status"></div>
+        </section>
+      </div>
+
+      <div class="footer">© 2026 • Sistema CRUD de productos para mascotas</div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
 </html>
