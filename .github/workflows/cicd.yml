@@ -48,7 +48,7 @@ jobs:
           cat > /tmp/cmd.json <<EOF
           {
             "commands": [
-              "set -euo pipefail",
+              "set -eu",
               "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${REGISTRY}",
               "docker pull ${REGISTRY}/${ECR_REPOSITORY}:latest",
               "docker rm -f tienda-frontend || true",
